@@ -2,14 +2,15 @@ import { Response } from 'express';
 
 // Helper code for the API consumer to understand the error and handle is accordingly
 enum StatusCode {
-  SUCCESS = '10000',
-  FAILURE = '10001',
-  RETRY = '10002',
-  INVALID_ACCESS_TOKEN = '10003',
+  SUCCESS = 'success',
+  FAILURE = 'error',
+  RETRY = 'retry',
+  INVALID_ACCESS_TOKEN = 'access_denied',
 }
 
 enum ResponseStatus {
   SUCCESS = 200,
+  CREATED_SUCCESS= 201,
   BAD_REQUEST = 400,
   UNAUTHORIZED = 401,
   FORBIDDEN = 403,
@@ -19,13 +20,14 @@ enum ResponseStatus {
 
 abstract class ApiResponse {
   constructor(
-    protected statusCode: StatusCode,
-    protected status: ResponseStatus,
+    protected status: StatusCode,
+    protected statusCode: ResponseStatus,
     protected message: string,
-  ) {}
+    protected results: number = 0,
+  ) { }
 
   protected prepare<T extends ApiResponse>(res: Response, response: T): Response {
-    return res.status(this.status).json(ApiResponse.sanitize(response));
+    return res.status(this.statusCode).json(ApiResponse.sanitize(response));
   }
 
   public send(res: Response): Response {
@@ -36,7 +38,7 @@ abstract class ApiResponse {
     const clone: T = {} as T;
     Object.assign(clone, response);
     // @ts-ignore
-    delete clone.status;
+    delete clone.statusCode;
     for (const i in clone) if (typeof clone[i] === 'undefined') delete clone[i];
     return clone;
   }
@@ -92,12 +94,22 @@ export class FailureMsgResponse extends ApiResponse {
 }
 
 export class SuccessResponse<T> extends ApiResponse {
-  constructor(message: string, private data: T) {
-    super(StatusCode.SUCCESS, ResponseStatus.SUCCESS, message);
+  constructor(message: string, private data: T, result: number) {
+    super(StatusCode.SUCCESS, ResponseStatus.SUCCESS, message, result);
   }
 
   send(res: Response): Response {
     return super.prepare<SuccessResponse<T>>(res, this);
+  }
+}
+
+export class CreatedSuccessResponse<T> extends ApiResponse {
+  constructor(message: string, private data: T, result: number) {
+    super(StatusCode.SUCCESS, ResponseStatus.CREATED_SUCCESS, message, result);
+  }
+
+  send(res: Response): Response {
+    return super.prepare<CreatedSuccessResponse<T>>(res, this);
   }
 }
 

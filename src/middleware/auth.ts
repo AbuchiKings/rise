@@ -1,7 +1,7 @@
 import { promisify } from 'util';
 import { sign, verify } from 'jsonwebtoken';
 import { InternalError, BadTokenError, TokenExpiredError } from '../utils/requestUtils/ApiError';
-import { User } from '../utils/interfaces/interface'
+import { UserInterface } from '../utils/interfaces/interface'
 
 const SECRET = process.env.JWT_KEY;
 
@@ -41,7 +41,7 @@ export class JwtPayload {
 }
 
 export const createTokens = async (
-    user: User,
+    user: UserInterface,
 ): Promise<string> => {
     const accessToken = await JWT.signToken(
         new JwtPayload(

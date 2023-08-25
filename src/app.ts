@@ -1,9 +1,11 @@
+import 'reflect-metadata'
 import compression from 'compression';
 import cors from 'cors';
 import express, { Application } from 'express';
 import helmet from 'helmet';
+import './data-source';
 
-import Controller from './utils/interfaces/controller.interfaces';
+import { Controller } from './utils/interfaces/interface';
 import ErrorMiddleware from './middleware/errorHandler';
 
 class App {

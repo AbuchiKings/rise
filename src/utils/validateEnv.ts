@@ -9,5 +9,11 @@ export default function validateEnv(): void{
         PORT: port({default: 8000}),
         SALT: num(),
         JWT_KEY: str(),
+        DB_TYPE: str(),
+        DB_PORT: num(),
+        DB_USER: str(),
+        DB_PASS: str(),
+        DB_NAME: str(),
+        DB_HOST: str(),
     })
 }
