@@ -8,6 +8,7 @@ import { Posts } from "../entity/post"
 import { Users } from "../entity/user"
 
 import { verifyToken } from "../middleware/auth";
+import { validateIdParam, validatePost, validationHandler } from '../middleware/validator';
 
 class PostController implements Controller {
     public path = '/users/:id/posts';
@@ -21,8 +22,8 @@ class PostController implements Controller {
 
     private initializeRoutes(): void {
         this.router.route(this.path,)
-            .post(verifyToken, this.create)
-            .get(verifyToken, this.getAll)
+            .post(verifyToken, validatePost, validationHandler, this.create)
+            .get(verifyToken, validateIdParam('id'), validationHandler, this.getAll)
     }
 
     private create = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {

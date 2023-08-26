@@ -9,6 +9,7 @@ import { Posts } from "../entity/post"
 import { Users } from "../entity/user"
 
 import { verifyToken } from "../middleware/auth";
+import { validateComment, validationHandler } from '../middleware/validator';
 
 class CommentController implements Controller {
     public path = '/posts';
@@ -23,7 +24,7 @@ class CommentController implements Controller {
 
     private initializeRoutes(): void {
         this.router.route(`${this.path}/:postId/comments`)
-            .post(verifyToken, this.create)
+            .post(verifyToken, validateComment, validationHandler, this.create)
         this.router.route(`${this.path}/users`)
             .get(verifyToken, this.getTopThree)
     }
