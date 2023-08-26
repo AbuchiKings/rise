@@ -3,7 +3,7 @@ import { UserInterface } from "../utils/interfaces/interface"
 
 
 @Entity()
-export class User implements UserInterface {
+export class Users implements UserInterface {
     @PrimaryGeneratedColumn('increment')
     id: number
 
@@ -19,8 +19,8 @@ export class Login implements UserInterface {
     @PrimaryGeneratedColumn('increment')
     id: number
 
-    @Column()
-    name: string
+    @Column({ unique: true })
+    email: string
 
     @Column()
     password: string

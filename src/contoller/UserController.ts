@@ -1,24 +1,35 @@
+import crypto from "crypto";
+
+import _ from "lodash";
+import bcrypt from "bcrypt";
 import { Router, Request, Response, NextFunction } from 'express';
 
 import AppDataSource from "../data-source";
-import { Controller } from "utils/interfaces/interface";
-import { SuccessResponse, CreatedSuccessResponse } from '../utils/requestUtils/ApiResponse';
-import { User } from "../entity/user"
+import { AuthFailureError, BadRequestError, ConflictError } from "../utils/requestUtils/ApiError";
+import { Controller } from "../utils/interfaces/interface";
+import { CreatedSuccessResponse, SuccessResponse, } from '../utils/requestUtils/ApiResponse';
+import { Login, Users, } from "../entity/user"
+
+import { createToken, verifyToken } from "../middleware/auth";
+import { rdSet, rdExp } from '../utils/cache'
+import { validateCreateUser, validateLogin, validationHandler } from "../middleware/validator";
 
 class UserController implements Controller {
     public path = '/users';
     public router = Router();
-    private UserRepository = AppDataSource.getRepository(User);
+    private UserRepository = AppDataSource.getRepository(Users);
+    private LoginRepository = AppDataSource.getRepository(Login);
 
     constructor() {
-        //this.create = this.create.bind(this)
         this.initializeRoutes();
     }
 
     private initializeRoutes(): void {
+        this.router.post(`${this.path}/login`, validateLogin, validationHandler, this.login);
+
         this.router.route(this.path,)
-            .post(this.create)
-            .get(this.getAll)
+            .post(verifyToken, validateCreateUser, validationHandler, this.create)
+            .get(verifyToken, this.getAll)
     }
 
     private create = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
@@ -27,6 +38,38 @@ class UserController implements Controller {
             const user = this.UserRepository.create({ name: name.toLowerCase() });
             const data = await this.UserRepository.save(user)
             new CreatedSuccessResponse('User successfully created.', data, 1).send(res);
+            return;
+        } catch (error: any) {
+            if (error.code === '23505') {
+                error = new ConflictError('User with name already exists');
+            }
+            next(error)
+        }
+    }
+
+    private login = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            const { email, password } = req.body;
+            console.log(req.body);
+            let login = await this.LoginRepository.findOne({ where: { email } });
+            if (!login) {
+                const passwordHash = await bcrypt.hash(password, 12);
+                const user = this.LoginRepository.create({ email, password: passwordHash });
+                login = await this.LoginRepository.save(user)
+            } else {
+                if (!login.password) throw new BadRequestError('Credential not set');
+
+                const match = await bcrypt.compare(password, login.password);
+                if (!match) throw new AuthFailureError('Authentication failure');
+            }
+            const accessTokenKey = crypto.randomBytes(64).toString('hex');
+
+            const token = await createToken(login, accessTokenKey);
+            const data = _.pick(login, ['id', 'email', 'createdAt']);
+
+            await rdSet(`${login.id}:${accessTokenKey}`, JSON.stringify(data));
+            await rdExp(`${login.id}:${accessTokenKey}`, 75 * 3600);
+            new CreatedSuccessResponse('User successfully created.', { ...data, token }, 1).send(res);
             return;
         } catch (error) {
             next(error)

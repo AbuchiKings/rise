@@ -7,6 +7,7 @@ import './data-source';
 
 import { Controller } from './utils/interfaces/interface';
 import ErrorMiddleware from './middleware/errorHandler';
+import { NoEntryError } from './utils/requestUtils/ApiError';
 
 class App {
     public express: Application;
@@ -33,6 +34,10 @@ class App {
         controllers.forEach((controller) => {
             this.express.use('/api/v1', controller.router);
         })
+
+        this.express.use('*', (req, res, next) => {
+            next(new NoEntryError(`Could not find ${req.originalUrl} on this server.`));
+        });
     }
 
     private initializeErrorHandling(): void {

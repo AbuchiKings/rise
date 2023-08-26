@@ -1,9 +1,9 @@
 import dotenv from 'dotenv';
 import { DataSource } from "typeorm";
 
-import { Post } from "./entity/post"
-import { User, Login } from "./entity/user"
-import { Comment } from "./entity/comment"
+import { Posts } from "./entity/post"
+import { Users, Login } from "./entity/user"
+import { Comments } from "./entity/comment"
 
 dotenv.config();
 
@@ -17,7 +17,7 @@ const AppDataSource = new DataSource({
     username: DB_USER,
     password: DB_PASS,
     database: DB_NAME,
-    entities: [Post, User, Comment, Login],
+    entities: [Posts, Users, Comments, Login],
     synchronize: true,
     ...(process.env.NODE_ENV === 'development' ? { logging: ["query", "error"], } : {})
 })

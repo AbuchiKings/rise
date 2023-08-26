@@ -16,6 +16,9 @@ enum ResponseStatus {
   FORBIDDEN = 403,
   NOT_FOUND = 404,
   INTERNAL_ERROR = 500,
+  CONFLICT= 409,
+  UNPROCESSIBLE_ENTITY= 422,
+  TOO_MANY_REQUESTS= 429,
 }
 
 abstract class ApiResponse {
@@ -51,14 +54,14 @@ export class AuthFailureResponse extends ApiResponse {
 }
 
 export class NotFoundResponse extends ApiResponse {
-  private url: string | undefined;
+  //private url: string | undefined;
 
   constructor(message = 'Not Found') {
     super(StatusCode.FAILURE, ResponseStatus.NOT_FOUND, message);
   }
 
   send(res: Response): Response {
-    this.url = res.req?.originalUrl;
+    //this.url = res.req?.originalUrl;
     return super.prepare<NotFoundResponse>(res, this);
   }
 }
@@ -135,3 +138,16 @@ export class TokenRefreshResponse extends ApiResponse {
     return super.prepare<TokenRefreshResponse>(res, this);
   }
 }
+
+export class ConflictMsgResponse extends ApiResponse {
+  constructor(message= 'Conflict') {
+      super(StatusCode.FAILURE, ResponseStatus.CONFLICT, message);
+  }
+}
+
+export class UnprocessibleEntityResponse extends ApiResponse {
+  constructor(message = 'Invalid Input') {
+      super(StatusCode.FAILURE, ResponseStatus.UNPROCESSIBLE_ENTITY, message);
+  }
+}
+

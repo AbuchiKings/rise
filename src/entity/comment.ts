@@ -1,12 +1,12 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, Index, CreateDateColumn } from "typeorm";
 import { CommentInterface } from "../utils/interfaces/interface"
 
-import { Post } from "./post"
-import { User } from "./user"
+import { Posts } from "./post"
+import { Users } from "./user"
 
 
 @Entity()
-export class Comment implements CommentInterface {
+export class Comments implements CommentInterface {
     @PrimaryGeneratedColumn('increment')
     id: number
 
@@ -16,11 +16,11 @@ export class Comment implements CommentInterface {
     @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)" })
     createdAt: Date
 
-    @ManyToOne(() => Post, { cascade: ["remove"] })
+    @ManyToOne(() => Posts, { cascade: ["remove"] })
     @Index()
-    post: Post
+    post: Posts
 
-    @ManyToOne(() => User, { cascade: ["remove"] })
+    @ManyToOne(() => Users, { cascade: ["remove"] })
     @Index()
-    user: User
+    user: Users
 }

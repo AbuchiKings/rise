@@ -6,6 +6,8 @@ import {
   NotFoundResponse,
   BadRequestResponse,
   ForbiddenResponse,
+  ConflictMsgResponse,
+  UnprocessibleEntityResponse,
 } from './ApiResponse';
 
 enum ErrorType {
@@ -19,6 +21,8 @@ enum ErrorType {
   NO_DATA = 'NoDataError',
   BAD_REQUEST = 'BadRequestError',
   FORBIDDEN = 'ForbiddenError',
+  UNPROCESSIBLE_ENTITY = 'UnprocessibleEntityError',
+  CONFLICT = 'ConflictError',
 }
 
 export abstract class ApiError extends Error {
@@ -44,6 +48,10 @@ export abstract class ApiError extends Error {
         return new BadRequestResponse(err.message).send(res);
       case ErrorType.FORBIDDEN:
         return new ForbiddenResponse(err.message).send(res);
+      case ErrorType.CONFLICT:
+        return new ConflictMsgResponse(err.message).send(res);
+      case ErrorType.UNPROCESSIBLE_ENTITY:
+        return new UnprocessibleEntityResponse(err.message).send(res);
       default: {
         let message = err.message;
         // Do not send failure message in production as it may send sensitive data
@@ -85,7 +93,7 @@ export class ForbiddenError extends ApiError {
 }
 
 export class NoEntryError extends ApiError {
-  constructor(message = "Entry don't exists") {
+  constructor(message = "Entry point don't exists") {
     super(ErrorType.NO_ENTRY, message);
   }
 }
@@ -113,3 +121,16 @@ export class AccessTokenError extends ApiError {
     super(ErrorType.ACCESS_TOKEN, message);
   }
 }
+
+export class UnprocessibleEntityError extends ApiError {
+  constructor(message = 'Unprocessible entity') {
+    super(ErrorType.UNPROCESSIBLE_ENTITY, message);
+  }
+}
+
+export class ConflictError extends ApiError {
+  constructor(message = 'Conflict') {
+      super(ErrorType.CONFLICT, message);
+  }
+}
+

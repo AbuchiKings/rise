@@ -1,11 +1,11 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, Index, CreateDateColumn } from "typeorm";
 import { PostInterface } from "../utils/interfaces/interface"
 
-import { User } from "./user"
+import { Users } from "./user"
 
 
 @Entity()
-export class Post implements PostInterface {
+export class Posts implements PostInterface {
     @PrimaryGeneratedColumn('increment')
     id: number
 
@@ -18,7 +18,7 @@ export class Post implements PostInterface {
     @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)" })
     createdAt: Date
 
-    @ManyToOne(() => User, { cascade: ["remove"] })
+    @ManyToOne(() => Users, { cascade: ["remove"] })
     @Index()
-    user: User
+    user: Users
 }
