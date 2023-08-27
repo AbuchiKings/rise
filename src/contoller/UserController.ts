@@ -4,11 +4,10 @@ import _ from "lodash";
 import bcrypt from "bcrypt";
 import { Router, Request, Response, NextFunction } from 'express';
 
-import AppDataSource from "../data-source";
 import { AuthFailureError, BadRequestError, ConflictError } from "../utils/requestUtils/ApiError";
 import { Controller } from "../utils/interfaces/interface";
 import { CreatedSuccessResponse, SuccessResponse, } from '../utils/requestUtils/ApiResponse';
-import { Login, Users, } from "../entity/user"
+import { Model } from "../service/repository"
 
 import { createToken, verifyToken } from "../middleware/auth";
 import { rdSet, rdExp } from '../utils/cache'
@@ -17,8 +16,8 @@ import { validateCreateUser, validateLogin, validationHandler } from "../middlew
 class UserController implements Controller {
     public path = '/users';
     public router = Router();
-    private UserRepository = AppDataSource.getRepository(Users);
-    private LoginRepository = AppDataSource.getRepository(Login);
+    private UserRepository = Model['user'];
+    private LoginRepository = Model['login'];
 
     constructor() {
         this.initializeRoutes();
@@ -29,7 +28,9 @@ class UserController implements Controller {
 
         this.router.route(this.path,)
             .post(verifyToken, validateCreateUser, validationHandler, this.create)
-            .get(verifyToken, this.getAll)
+            .get(verifyToken, this.getAll);
+
+        this.router.get(`${this.path}/test`, verifyToken, this.test)
     }
 
     private create = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
@@ -50,7 +51,6 @@ class UserController implements Controller {
     private login = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
         try {
             const { email, password } = req.body;
-            console.log(req.body);
             let login = await this.LoginRepository.findOne({ where: { email } });
             if (!login) {
                 const passwordHash = await bcrypt.hash(password, 12);
@@ -80,6 +80,15 @@ class UserController implements Controller {
         try {
             const data = await this.UserRepository.find({});
             new SuccessResponse('Users successfully retrieved.', data, data.length).send(res);
+            return;
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    public test = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+        try {
+            new SuccessResponse('successfully passed.', null, 0).send(res);
             return;
         } catch (error) {
             next(error)

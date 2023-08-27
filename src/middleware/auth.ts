@@ -3,24 +3,22 @@ import { promisify } from 'util';
 import { sign, verify } from 'jsonwebtoken';
 import { Response, NextFunction } from 'express';
 
-import asyncHandler from '../utils/asyncHandler';
 import { InternalError, AuthFailureError, BadTokenError, TokenExpiredError } from '../utils/requestUtils/ApiError';
 import { ProtectedRequest, UserInterface } from '../utils/interfaces/interface'
 import { rdGet } from '../utils/cache'
 
 const SECRET = process.env.JWT_KEY;
 
-export default class JWT {
-    public static async signToken(payload: JwtPayload): Promise<string> {
-        // @ts-ignore
-        return promisify(sign)({ ...payload }, SECRET);
-    }
-
-    public static async validate(token: string): Promise<JwtPayload> {
-        // @ts-ignore
-        return (await promisify(verify)(token, SECRET)) as JwtPayload;
-    }
+export const signToken = async (payload: JwtPayload): Promise<string> => {
+    // @ts-ignore
+    return promisify(sign)({ ...payload }, SECRET);
 }
+
+export const validate = (token: string): Promise<JwtPayload> => {
+    // @ts-ignore
+    return promisify(verify)(token, SECRET);
+}
+
 
 export class JwtPayload {
     aud: string;
@@ -43,10 +41,8 @@ export class JwtPayload {
     }
 }
 
-export const createToken = async (
-    user: UserInterface, accessTokenKey: string
-): Promise<string> => {
-    const accessToken = await JWT.signToken(
+export const createToken = async (user: UserInterface, accessTokenKey: string): Promise<string> => {
+    const accessToken = await signToken(
         new JwtPayload(
             user.id,
             accessTokenKey,
@@ -67,9 +63,9 @@ export const getAccessToken = (authorization?: string) => {
 
 export const verifyToken = async (req: ProtectedRequest, res: Response, next: NextFunction) => {
     try {
-        req.accessToken = getAccessToken(req.headers.authorization); 
+        req.accessToken = getAccessToken(req.headers.authorization);
 
-        const payload = await JWT.validate(req.accessToken);
+        const payload = await validate(req.accessToken);
         if (!payload.sub || !payload.key) throw new BadTokenError()
 
         const user = await rdGet(`${payload.sub}:${payload.key}`)
@@ -78,8 +74,9 @@ export const verifyToken = async (req: ProtectedRequest, res: Response, next: Ne
         return next();
     } catch (e: any) {
         if (e.name === 'TokenExpiredError' || e.name === 'JsonWebTokenError') {
-            e.message = 'Unauthorised. Please login with your details';
+            return next(new BadTokenError('Bad Token'));
         }
         return next(e);
     }
 }
+

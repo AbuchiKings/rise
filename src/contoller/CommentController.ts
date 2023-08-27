@@ -3,10 +3,8 @@ import { Router, Request, Response, NextFunction } from 'express';
 import AppDataSource from "../data-source";
 import { BadRequestError, NotFoundError } from '../utils/requestUtils/ApiError';
 import { CreatedSuccessResponse, SuccessResponse } from '../utils/requestUtils/ApiResponse';
-import { Comments } from "../entity/comment"
 import { Controller } from "utils/interfaces/interface";
-import { Posts } from "../entity/post"
-import { Users } from "../entity/user"
+import { Model } from "../service/repository"
 
 import { verifyToken } from "../middleware/auth";
 import { validateComment, validationHandler } from '../middleware/validator';
@@ -14,9 +12,9 @@ import { validateComment, validationHandler } from '../middleware/validator';
 class CommentController implements Controller {
     public path = '/posts';
     public router = Router();
-    private UserRepository = AppDataSource.getRepository(Users);
-    private PostRepository = AppDataSource.getRepository(Posts);
-    private CommentRepository = AppDataSource.getRepository(Comments);
+    private UserRepository = Model['user'];
+    private PostRepository = Model['post'];
+    private CommentRepository = Model['comment'];
 
     constructor() {
         this.initializeRoutes();
@@ -69,7 +67,6 @@ class CommentController implements Controller {
                 LIMIT 3;
             `)
 
-            console.log(data)
             new SuccessResponse('Users successfully retrieved.', data, data.length).send(res);
             return;
         } catch (error) {

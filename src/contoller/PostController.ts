@@ -1,11 +1,9 @@
 import { Router, Request, Response, NextFunction } from 'express';
 
-import AppDataSource from "../data-source";
 import { BadRequestError } from '../utils/requestUtils/ApiError';
 import { CreatedSuccessResponse, SuccessResponse } from '../utils/requestUtils/ApiResponse';
 import { Controller } from "utils/interfaces/interface";
-import { Posts } from "../entity/post"
-import { Users } from "../entity/user"
+import { Model } from "../service/repository"
 
 import { verifyToken } from "../middleware/auth";
 import { validateIdParam, validatePost, validationHandler } from '../middleware/validator';
@@ -13,8 +11,8 @@ import { validateIdParam, validatePost, validationHandler } from '../middleware/
 class PostController implements Controller {
     public path = '/users/:id/posts';
     public router = Router();
-    private UserRepository = AppDataSource.getRepository(Users);
-    private PostRepository = AppDataSource.getRepository(Posts);
+    private UserRepository = Model['user'];
+    private PostRepository = Model['post'];
 
     constructor() {
         this.initializeRoutes();
