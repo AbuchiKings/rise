@@ -1,0 +1,47 @@
+version: "3.8"
+services:
+  api:
+    build: .
+    volumes:
+      - ./:/app:ro
+      - node_modules:/app/node_modules
+    env_file:
+      - ./.env
+    container_name: api
+    restart: unless-stopped
+    depends_on:
+      - redis
+    networks:
+      - rise
+  
+  redis:
+    image: redis
+    container_name: redis
+    restart: unless-stopped
+    networks:
+      - rise
+
+  nginx:
+    image: nginx
+    networks:
+      - rise
+    restart: unless-stopped
+    depends_on:
+      - api
+
+  database:
+    image: postgres:13
+    container_name: database
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_DB: rise
+    ports:
+      - 5432:5432
+    networks:
+      - rise
+
+networks:
+  rise:
+volumes:
+  node_modules:

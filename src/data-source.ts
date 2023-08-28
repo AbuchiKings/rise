@@ -25,6 +25,7 @@ const AppDataSource = new DataSource({
 AppDataSource.initialize().then((data) => {
     console.log(`Connected to ${data.options.database} database successfully`);
 }).catch((error) => {
+    console.log(DB_HOST, DB_PORT, DB_USER, DB_PASS, DB_NAME )
     console.log(error);
 })
 
